@@ -1,0 +1,112 @@
+from math import exp
+
+import pandas as pd
+from pandas import DataFrame
+
+
+def classification(th0, th1, th2, th3, lam, vector):
+    # Define paramrinteters
+    alp = 0.1
+    m = 1065
+    values = []
+    list = []
+    dJ0 = 0
+    dJ1 = 0
+    dJ2 = 0
+    dJ3 = 0
+    count = 0
+    convergence = 0.004
+
+    # proceed to next iteration or row to with updated theta
+    for i in range(1, m, 1):
+        tT = th0 + th1 * train_data.iat[i - 1, 0] + th2 * \
+            train_data.iat[i - 1, 1] + th3 * train_data.iat[i - 1, 2]
+        hT = 1 / (1 + (exp(-tT)))
+        print(hT)
+        list.append(hT)
+
+        # update differential for single row
+        for j in range(0, m, 1):
+            dJ0 = dJ0 + ((hT - train_data.iat[j, 3]) + (lam * th0)) / m
+            dJ1 = dJ1 + \
+                ((hT - train_data.iat[j, 3]) *
+                 train_data.iat[j, 0] + (lam * abs(th1))) / m
+            dJ2 = dJ2 + \
+                ((hT - train_data.iat[j, 3]) *
+                 train_data.iat[j, 1] + (lam * abs(th2))) / m
+            dJ3 = dJ3 + \
+                ((hT - train_data.iat[j, 3]) *
+                 train_data.iat[j, 2] + (lam * abs(th3))) / m
+
+        # update thetas using single row data
+        t0n = th0 - (alp * dJ0)
+        t1n = th1 - (alp * dJ1)
+        t2n = th2 - (alp * dJ2)
+        t3n = th3 - (alp * dJ3)
+
+        if i == 1:
+            # Store Oldest theta
+            vec.insert(0, th0)
+            vec.insert(1, th1)
+            vec.insert(2, th2)
+            vec.insert(3, th3)
+
+            # Update old theta to new theta
+            th0 = t0n
+            th1 = t1n
+            th2 = t2n
+            th3 = t3n
+
+        if i > 1:
+            count = count + 1
+
+            new_max = max(abs(t0n - th0), abs(t1n - th1),
+                          abs(t2n - th2), abs(t3n - th3))
+            old_max = max(abs(vector[0] - th0), abs(vector[1] - th1),
+                          abs(vector[2] - th2), abs(vector[3] - th3))
+
+            # Store Oldest theta
+            vec.insert(0, th0)
+            vec.insert(1, th1)
+            vec.insert(2, th2)
+            vec.insert(3, th3)
+
+            # Update old theta to new theta
+            th0 = t0n
+            th1 = t1n
+            th2 = t2n
+            th3 = t3n
+
+            if new_max < convergence and old_max < convergence:
+                values.insert(0, t0n)
+                values.insert(1, t1n)
+                values.insert(2, t2n)
+                values.insert(3, t3n)
+                values.insert(4, count)
+
+                return values
+
+
+# Read File
+df = pd.read_excel(
+    'D:\MEC\SEM-6\ML\Assignments\Asn_2\Data for assignment #2.xlsx')
+count = len(df)
+
+# Split data
+train_data = pd.DataFrame()
+test_data = pd.DataFrame()
+for x in range(0, count, 1):
+    if (x + 1) % 5 == 0:
+        test_data = test_data.append(df.iloc[x:x + 1])
+    else:
+        train_data = train_data.append(df.iloc[x:x + 1])
+
+# Define thetas
+t0 = 0.01
+t1 = 0.01
+t2 = 0.01
+t3 = 0.01
+vec = [t0, t1, t2, t3]
+
+# Call function
+val = classification(t0, t1, t2, t3, 0, vec)
