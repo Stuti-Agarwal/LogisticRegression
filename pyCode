@@ -1,0 +1,137 @@
+import pandas as pd
+import math
+import numpy as np
+from sklearn.linear_model import LinearRegression
+from sklearn import preprocessing
+import matplotlib.pyplot as plt
+from matplotlib.colors import ListedColormap
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+import csv
+from sklearn.metrics import classification_report, confusion_matrix
+import random
+
+rand = random.randint(-100, 100)
+
+# to input dataset from user
+# file_name = input("Type file name here: ")
+# file_path = input("Type file path here\n Only .csv files accepted")
+dataset = pd.read_csv("Data for assignment #2.csv")
+df = pd.DataFrame(dataset)
+# data wrangling
+dataset.dropna(inplace=True)
+no_of_rows_i = df.shape
+file = open("Data for assignment #2.csv")
+reader = csv.reader(file)
+lines = len(list(reader))
+print(lines)
+no_of_rows = len(df.index)
+no_of_columns = len(df.columns)
+
+X = df.drop(columns=no_of_columns)
+y = dataset.iloc[:, no_of_columns].values
+
+# NORMALIZING VALUES
+for i in range(1, len(X.columns)):
+    X[i - 1] = X[i - 1] / np.max(X[i - 1])
+X.head()
+# normalizing the output column
+threshold_value = 0.5
+
+# data splitting
+Xtrain, xtest, y_train, ytest = train_test_split(
+    X, y, test_size=0.2, random_state=23, stratify=y)
+X_train = preprocessing.scale(Xtrain)
+# plots
+for x in range(no_of_columns - 1):
+    dataset.plot(x, y)
+
+# LINEAR REGRESSION
+linear_reg_f = LinearRegression().fit(x, y)
+X_train = preprocessing.scale(Xtrain)
+
+theta = np.array([q] * len(X.columns))
+m = len(df)
+
+
+def hypothesis(theta, X):
+    return theta * X
+
+
+def computeCost(X, y, theta):
+    y1 = hypothesis(theta, X)
+    y1 = np.sum(y1, axis=1)
+    return sum(np.sqrt((y1 - y) ** 2)) / (2 * 47)
+
+
+def gradientDescent(X, y, theta, alpha, i):
+    J = []
+    # cost function changes in each iterations
+    k = 0
+    while k < i:
+        y1 = hypothesis(theta, X)
+        y1 = np.sum(y1, axis=1)
+        for c in range(0, len(X.columns)):
+            theta[c] = theta[c] - alpha * \
+                (sum((y1 - y) * X.iloc[:, c]) / len(X))
+        j = computeCost(X, y, theta)
+        J.append(j)
+        k += 1
+    return J, j, theta
+
+
+new_Lin_model = LinearRegression().fit(x, y.reshape((-1, 1)))
+y_prediction = linear_reg_f.predict(x)
+y_prediction = linear_reg_f.intercept_ + linear_reg_f.coef_ * x
+
+# LOGISTIC REGRESSION
+# optimization loop starts here we need to change c such that score is max, set num of iterations
+Log_reg_model = LogisticRegression(
+    solver='liblinear', C=10, random_state=rand).fit(x, y)
+
+# LogisticRegression(C=10, class_weight=None, dual=False, fit_intercept=True,
+# intercept_scaling=1, l1_ratio=None, max_iter=1000,multi_class='multinomial', n_jobs=-1, penalty='l2'
+# ,random_state=rand, solver='liblinear', tol=0.0001, verbose=0,warm_start=False)
+Log_reg_model.classes_
+Log_reg_model.predict_proba(x)
+Log_reg_model.predict(x)
+Log_reg_model.score(x, y)
+# optimzation loop ends here
+confusion_matrix(y, Log_reg_model.predict(x))
+
+cm = confusion_matrix(y, Log_reg_model.predict(x))
+
+fig, ax = plt.subplots(figsize=(8, 8))
+ax.imshow(cm)
+ax.grid(False)
+ax.xaxis.set(ticks=(0, 1), ticklabels=('Predicted 0s', 'Predicted 1s'))
+ax.yaxis.set(ticks=(0, 1), ticklabels=('Actual 0s', 'Actual 1s'))
+ax.set_ylim(1.5, -0.5)
+for i in range(2):
+    for j in range(2):
+        ax.text(j, i, cm[i, j], ha='center', va='center', color='red')
+plt.show()
+
+# VISUALIZING PERFORMANCE
+xset, yset = xtest, ytest
+X1, X2 = np.meshgrid(np.arange(start=xset[:, 0].min() - 1,
+                               stop=xset[:, 0].max() + 1, step=0.01),
+                     np.arange(start=xset[:, 1].min() - 1,
+                               stop=xset[:, 1].max() + 1, step=0.01))
+
+plt.contourf(X1, X2, classifier.predict(
+    np.array([X1.ravel(), X2.ravel()]).T).reshape(
+    X1.shape), alpha=0.75, cmap=ListedColormap(('red', 'green')))
+
+plt.xlim(X1.min(), X1.max())
+plt.ylim(X2.min(), X2.max())
+
+for i, j in enumerate(np.unique(yset)):
+    plt.scatter(xset[yset == j, 0], xset[yset == j, 1],
+                c=ListedColormap(('red', 'green'))(i), label=j)
+
+plt.title('Classifier (Test set)')
+plt.xlabel('Input')
+plt.ylabel('Output')
+plt.legend()
+plt.show()
