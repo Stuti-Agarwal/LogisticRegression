@@ -1,0 +1,46 @@
+import numpy as np
+import pandas as pd
+
+data = pd.read_excel(
+    "D:\ML\Data.xlsx")
+
+# taking inputs and outputs from data and splitting them in 80:20
+data = np.array(data)
+Train = []
+Test = []
+list = []
+for i in range(len(data)):
+    if i % 5 == 0:
+        Test.append(data[i])
+    else:
+        Train.append(data[i])
+xTrain = np.delete(Train, -1, 1)
+yTrain = np.delete(Train, (0, 1, 2), 1)
+xTest = np.delete(Test, -1, 1)
+yTest = np.delete(Test, (0, 1, 2), 1)
+
+
+def sigmoid(x):
+    return 1/(1+np.exp(-x))
+
+
+lamda = [0, 1, 10]
+lamda = np.array(lamda)
+
+C_init = xTrain[200]
+
+
+def cost(theta):
+    z = np.dot(xTrain, theta)
+    cost0 = yTrain.T.dot(np.log(sigmoid(z)))
+    cost1 = (1-yTrain).T.dot(np.log(1-sigmoid(z)))
+    cost = -((cost1 + cost0))/len(yTrain)
+    return cost
+
+
+for i in range(len(xTrain)):
+    list.append(xTrain[i] - 9 * (cost(xTrain[i]) +
+                (lamda/len(xTrain))*xTrain[i]))
+
+list = np.array(list)
+print(list)
